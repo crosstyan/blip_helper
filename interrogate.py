@@ -78,6 +78,9 @@ class InterrogateModels:
                 self.categories.append(Category(name=filename, topn=topn, items=lines))
 
     def load_blip_model(self):
+        # if you can't find this you have to install the
+        # requirements.txt in the repo/BLIP folder
+        # pycocotools is needed
         import models.blip
 
         blip_model = models.blip.blip_decoder(pretrained=blip_model_url, 

@@ -5,19 +5,19 @@ import platform
 import sys
 import tqdm
 import time
+import interrogate
 
 from modules import shared, images
 from modules.paths import models_path
 from modules.shared import opts, cmd_opts
-from modules.textual_inversion import autocrop
-if cmd_opts.deepdanbooru:
-    import modules.deepbooru as deepbooru
 
+
+interrogator = interrogate.InterrogateModels("interrogate")
 
 def preprocess(process_src, process_dst, process_width, process_height, preprocess_txt_action, process_flip, process_split, process_caption, process_caption_deepbooru=False, split_threshold=0.5, overlap_ratio=0.2, process_focal_crop=False, process_focal_crop_face_weight=0.9, process_focal_crop_entropy_weight=0.3, process_focal_crop_edges_weight=0.5, process_focal_crop_debug=False):
     try:
         if process_caption:
-            shared.interrogator.load()
+            interrogator.load()
 
         if process_caption_deepbooru:
             db_opts = deepbooru.create_deepbooru_opts()
