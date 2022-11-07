@@ -10,7 +10,19 @@ import torch
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
-import devices
+def torch_gc():
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+
+# has_mps is only available in nightly pytorch (for now), `getattr` for compatibility
+has_mps = getattr(torch, 'has_mps', False)
+# if device_id is not None:
+#     cuda_device = f"cuda:{device_id}"
+#     return torch.device(cuda_device)
+cpu = torch.device("cpu")
+deivces_interrogate = torch.device("cuda")
+
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 clip_models_path = os.path.join(pwd, "models")
@@ -52,7 +64,7 @@ class InterrogateModels:
 
     def __init__(self, content_dir):
         self.categories = []
-        # self.running_on_cpu = devices.device_interrogate == torch.device("cpu")
+        # self.running_on_cpu = deivces_interrogate == torch.device("cpu")
         self.running_on_cpu = is_running_on_cpu
 
         if os.path.exists(content_dir):
@@ -84,7 +96,7 @@ class InterrogateModels:
             model, preprocess = clip.load(clip_model_name, download_root=clip_models_path)
 
         model.eval()
-        model = model.to(devices.device_interrogate)
+        model = model.to(deivces_interrogate)
 
         return model, preprocess
 
@@ -94,32 +106,32 @@ class InterrogateModels:
             if not is_no_half and not self.running_on_cpu:
                 self.blip_model = self.blip_model.half()
 
-        self.blip_model = self.blip_model.to(devices.device_interrogate)
+        self.blip_model = self.blip_model.to(deivces_interrogate)
 
         if self.clip_model is None:
             self.clip_model, self.clip_preprocess = self.load_clip_model()
             if not is_no_half and not self.running_on_cpu:
                 self.clip_model = self.clip_model.half()
 
-        self.clip_model = self.clip_model.to(devices.device_interrogate)
+        self.clip_model = self.clip_model.to(deivces_interrogate)
 
         self.dtype = next(self.clip_model.parameters()).dtype
 
     def send_clip_to_ram(self):
         if not interrogate_keep_models_in_memory:
             if self.clip_model is not None:
-                self.clip_model = self.clip_model.to(devices.cpu)
+                self.clip_model = self.clip_model.to(cpu)
 
     def send_blip_to_ram(self):
         if not interrogate_keep_models_in_memory:
             if self.blip_model is not None:
-                self.blip_model = self.blip_model.to(devices.cpu)
+                self.blip_model = self.blip_model.to(cpu)
 
     def unload(self):
         self.send_clip_to_ram()
         self.send_blip_to_ram()
 
-        devices.torch_gc()
+        torch_gc()
 
     def rank(self, image_features, text_array, top_count=1):
         import clip
@@ -128,11 +140,11 @@ class InterrogateModels:
             text_array = text_array[0:int(interrogate_clip_dict_limit)]
 
         top_count = min(top_count, len(text_array))
-        text_tokens = clip.tokenize([text for text in text_array], truncate=True).to(devices.device_interrogate)
+        text_tokens = clip.tokenize([text for text in text_array], truncate=True).to(deivces_interrogate)
         text_features = self.clip_model.encode_text(text_tokens).type(self.dtype)
         text_features /= text_features.norm(dim=-1, keepdim=True)
 
-        similarity = torch.zeros((1, len(text_array))).to(devices.device_interrogate)
+        similarity = torch.zeros((1, len(text_array))).to(deivces_interrogate)
         for i in range(image_features.shape[0]):
             similarity += (100.0 * image_features[i].unsqueeze(0) @ text_features.T).softmax(dim=-1)
         similarity /= image_features.shape[0]
@@ -145,7 +157,7 @@ class InterrogateModels:
             transforms.Resize((blip_image_eval_size, blip_image_eval_size), interpolation=InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
-        ])(pil_image).unsqueeze(0).type(self.dtype).to(devices.device_interrogate)
+        ])(pil_image).unsqueeze(0).type(self.dtype).to(deivces_interrogate)
 
         with torch.no_grad():
             caption = self.blip_model.generate(gpu_image, sample=False, num_beams=interrogate_clip_num_beams, min_length=interrogate_clip_min_length, max_length=interrogate_clip_max_length)
@@ -165,11 +177,11 @@ class InterrogateModels:
 
             caption = self.generate_caption(pil_image)
             self.send_blip_to_ram()
-            devices.torch_gc()
+            torch_gc()
 
             res = caption
 
-            clip_image = self.clip_preprocess(pil_image).unsqueeze(0).type(self.dtype).to(devices.device_interrogate)
+            clip_image = self.clip_preprocess(pil_image).unsqueeze(0).type(self.dtype).to(deivces_interrogate)
 
             # precision_scope = torch.autocast if shared.cmd_opts.precision == "autocast" else contextlib.nullcontext
             # Don't care about precision for now
