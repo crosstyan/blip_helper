@@ -1,3 +1,5 @@
 __pycache__
 *.pth
 picture
+pretrained/deepbooru/*
+!pretrained/deepbooru/put_deepbooru_models_here.txt
