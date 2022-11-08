@@ -4,6 +4,7 @@ import sys
 import traceback
 from collections import namedtuple
 import re
+import importlib as imp
 
 import torch
 
@@ -21,11 +22,13 @@ has_mps = getattr(torch, 'has_mps', False)
 #     cuda_device = f"cuda:{device_id}"
 #     return torch.device(cuda_device)
 cpu = torch.device("cpu")
-deivces_interrogate = torch.device("cuda")
-
+# deivces_interrogate = torch.device("cuda")
+deivces_interrogate = cpu
 
 pwd = os.path.dirname(os.path.realpath(__file__))
-clip_models_path = os.path.join(pwd, "models")
+# without models
+blip_dir = os.path.join(pwd, "repo", "BLIP")
+sys.path.insert(0, blip_dir)
 
 # "interrogate_return_ranks": OptionInfo(False, "Interrogate: include ranks of model tags matches in results (Has no effect on caption-based interrogators)."),
 # "interrogate_clip_num_beams": OptionInfo(1, "Interrogate: num_beams for BLIP", gr.Slider, {"minimum": 1, "maximum": 16, "step": 1}),
@@ -33,7 +36,7 @@ clip_models_path = os.path.join(pwd, "models")
 # "interrogate_clip_max_length": OptionInfo(48, "Interrogate: maximum description length", gr.Slider, {"minimum": 1, "maximum": 256, "step": 1}),
 # "interrogate_clip_dict_limit": OptionInfo(1500, "CLIP: maximum number of lines in text file (0 = No limit)"),
 
-is_running_on_cpu = False
+is_running_on_cpu = True
 is_no_half = False
 interrogate_keep_models_in_memory = False
 interrogate_return_ranks = False
@@ -42,12 +45,20 @@ interrogate_clip_num_beams:int = 1
 interrogate_clip_min_length:int = 24
 interrogate_clip_max_length:int = 48
 interrogate_clip_dict_limit:int = 1500
+use_torch_cache = False
 med_config = os.path.join(pwd, "repo", "BLIP", "configs", "med_config.json")
 
 
 blip_image_eval_size = 384
 blip_model_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth'
+blip_model_filename = "model_base_caption_capfilt_large.pth"
 clip_model_name = 'ViT-L/14'
+
+# the folder containing the models
+blip_models_folder_path = os.path.join(pwd, "pretrained")
+
+# the path of pth
+blip_models_path = os.path.join(blip_models_folder_path, blip_model_filename)
 
 Category = namedtuple("Category", ["name", "topn", "items"])
 
@@ -83,7 +94,14 @@ class InterrogateModels:
         # pycocotools is needed
         import models.blip
 
-        blip_model = models.blip.blip_decoder(pretrained=blip_model_url, 
+        model_path_or_url =  blip_model_url if use_torch_cache else blip_models_path 
+
+        # blip_model = models.blip.blip_decoder(pretrained=blip_model_url, 
+        #                                       image_size=blip_image_eval_size, vit='base', 
+        #                                       med_config=med_config)
+
+        # NOTE model_base_caption_capfilt_large.pth should exist in the pretrained folder
+        blip_model = models.blip.blip_decoder(pretrained=model_path_or_url, 
                                               image_size=blip_image_eval_size, vit='base', 
                                               med_config=med_config)
         blip_model.eval()
@@ -94,9 +112,9 @@ class InterrogateModels:
         import clip
 
         if self.running_on_cpu:
-            model, preprocess = clip.load(clip_model_name, device="cpu", download_root=clip_models_path)
+            model, preprocess = clip.load(clip_model_name, device="cpu", download_root=blip_models_folder_path)
         else:
-            model, preprocess = clip.load(clip_model_name, download_root=clip_models_path)
+            model, preprocess = clip.load(clip_model_name, download_root=blip_models_folder_path)
 
         model.eval()
         model = model.to(deivces_interrogate)
@@ -111,14 +129,16 @@ class InterrogateModels:
 
         self.blip_model = self.blip_model.to(deivces_interrogate)
 
-        if self.clip_model is None:
-            self.clip_model, self.clip_preprocess = self.load_clip_model()
-            if not is_no_half and not self.running_on_cpu:
-                self.clip_model = self.clip_model.half()
+        # Don't care clip for now
+        # no idea what this is for
+        # if self.clip_model is None:
+        #     self.clip_model, self.clip_preprocess = self.load_clip_model()
+        #     if not is_no_half and not self.running_on_cpu:
+        #         self.clip_model = self.clip_model.half()
 
-        self.clip_model = self.clip_model.to(deivces_interrogate)
+        # self.clip_model = self.clip_model.to(deivces_interrogate)
 
-        self.dtype = next(self.clip_model.parameters()).dtype
+        # self.dtype = next(self.clip_model.parameters()).dtype
 
     def send_clip_to_ram(self):
         if not interrogate_keep_models_in_memory:
@@ -156,11 +176,15 @@ class InterrogateModels:
         return [(text_array[top_labels[0][i].numpy()], (top_probs[0][i].numpy()*100)) for i in range(top_count)]
 
     def generate_caption(self, pil_image):
+        # p1 = transforms.Resize((blip_image_eval_size, blip_image_eval_size), interpolation=InterpolationMode.BICUBIC)
+        # p2 = transforms.ToTensor()
+        # p3 = transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
+        # no extra parameter conversion
         gpu_image = transforms.Compose([
             transforms.Resize((blip_image_eval_size, blip_image_eval_size), interpolation=InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
-        ])(pil_image).unsqueeze(0).type(self.dtype).to(deivces_interrogate)
+        ])(pil_image).unsqueeze(0).to(deivces_interrogate)
 
         with torch.no_grad():
             caption = self.blip_model.generate(gpu_image, sample=False, num_beams=interrogate_clip_num_beams, min_length=interrogate_clip_min_length, max_length=interrogate_clip_max_length)

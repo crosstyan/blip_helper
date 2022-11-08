@@ -4,13 +4,18 @@ import tempfile
 import argparse
 import glob
 import zipfile
-import deepdanbooru as dd
-import tensorflow as tf
 import numpy as np
 import interrogate
 
+# hate it
+from torch.hub import load_state_dict_from_url, download_url_to_file, urlparse, HASH_REGEX
+# from timm.models.hub import download_cached_file
+
 from PIL import Image
 from tqdm import tqdm
+
+# from interrogate import blip_models_folder_path, blip_models_path, blip_model_url, clip_model_name
+import interrogate
 
 # Do some post processing with generated txt
 # like add artist name
@@ -18,29 +23,30 @@ def post_process_prompt(prompt: str, append: str) -> str:
     prompt = prompt + ", " + append
     return prompt
 
+def download_cached_file(url, check_hash=True, progress=False):
+    parts = urlparse(url)
+    filename = os.path.basename(parts.path)
+    models_file = os.path.join(interrogate.blip_models_folder_path, filename)
+    if not os.path.exists(models_file):
+        print('Downloading: "{}" to {}\n'.format(url, models_file))
+        hash_prefix = None
+        if check_hash:
+            r = HASH_REGEX.search(filename)  # r is Optional[Match[str]]
+            hash_prefix = r.group(1) if r else None
+        download_url_to_file(url, models_file, hash_prefix, progress=progress)
+    return models_file
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=str, default=".")
-    parser.add_argument("--threshold", type=int, default=0.75)
-    parser.add_argument("--alpha_sort", type=bool, default=False)
-    parser.add_argument("--use_spaces", type=bool, default=True)
-    parser.add_argument("--use_escape", type=bool, default=True)
-    parser.add_argument("--model_path", type=str, default="")
-    parser.add_argument("--include_ranks", type=bool, default=False)
     parser.add_argument("--post_process", type=bool, default=True)
     parser.add_argument("--append", type=str, default="sks", help="append a string to the end of the prompt. only effective when post_process is True")
 
     args = parser.parse_args()
 
-    global model_path
-    model_path:str
-    if args.model_path == "":
-        script_path = os.path.realpath(__file__)
-        default_model_path = os.path.join(os.path.dirname(script_path), "models")
-        print("No model path specified, using default model path: {}".format(default_model_path))
-        model_path = default_model_path
-    else:
-        model_path = args.model_path
+    is_models_exist = os.path.exists(interrogate.blip_models_path)
+    if not is_models_exist:
+        download_cached_file(interrogate.blip_model_url)
 
     types = ('jpg', 'png', 'jpeg', 'gif', 'webp', 'bmp') # the tuple of file types
     p = args.path
