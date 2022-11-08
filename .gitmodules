@@ -1,3 +1,6 @@
 [submodule "repo/BLIP"]
 	path = repo/BLIP
 	url = https://github.com/salesforce/BLIP
+[submodule "repo/DeepDanbooru"]
+	path = repo/DeepDanbooru
+	url = https://github.com/KichangKim/DeepDanbooru

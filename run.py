@@ -6,10 +6,12 @@ import glob
 import zipfile
 import numpy as np
 import interrogate
+import deepbooru
+import args_parser
 
 # hate it
-from torch.hub import load_state_dict_from_url, download_url_to_file, urlparse, HASH_REGEX
-# from timm.models.hub import download_cached_file
+# TODO: use the same download util
+from torch.hub import download_url_to_file, urlparse, HASH_REGEX
 
 from PIL import Image
 from tqdm import tqdm
@@ -37,11 +39,7 @@ def download_cached_file(url, check_hash=True, progress=False):
     return models_file
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=str, default=".")
-    parser.add_argument("--post_process", type=bool, default=True)
-    parser.add_argument("--append", type=str, default="sks", help="append a string to the end of the prompt. only effective when post_process is True")
-
+    parser = args_parser.get_parser()
     args = parser.parse_args()
 
     is_models_exist = os.path.exists(interrogate.blip_models_path)
