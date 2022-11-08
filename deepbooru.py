@@ -1,16 +1,13 @@
 import os.path
 import re
-import tempfile
-import argparse
-import glob
 import zipfile
 import deepdanbooru as dd
 import tensorflow as tf
 import numpy as np
-
 from basicsr.utils.download_util import load_file_from_url
-from PIL import Image
-from tqdm import tqdm
+
+pwd =  os.path.realpath(__file__)
+default_deepbooru_model_path = os.path.abspath(os.path.join(pwd, "pretrained", "deepbooru"))
 
 re_special = re.compile(r"([\\()])")
 

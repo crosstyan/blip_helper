@@ -15,15 +15,15 @@ from torch.hub import download_url_to_file, urlparse, HASH_REGEX
 
 from PIL import Image
 from tqdm import tqdm
-
-# from interrogate import blip_models_folder_path, blip_models_path, blip_model_url, clip_model_name
 import interrogate
 
 # Do some post processing with generated txt
 # like add artist name
-def post_process_prompt(prompt: str, append: str) -> str:
-    prompt = prompt + ", " + append
-    return prompt
+def post_process_prompt(prompt: str, append: str, is_prepend=True) -> str:
+    if is_prepend:
+        return append + ", " + prompt
+    else:
+        return prompt + ", " + append
 
 def download_cached_file(url, check_hash=True, progress=False, output_dir=""):
     parts = urlparse(url)
@@ -41,10 +41,28 @@ def download_cached_file(url, check_hash=True, progress=False, output_dir=""):
 if __name__ == "__main__":
     parser = args_parser.get_parser()
     args = parser.parse_args()
+    if (not args.deepbooru) and (not args.blip):
+        print("Why are you running this script?")
+        exit(1)
 
-    is_models_exist = os.path.exists(interrogate.blip_models_path)
-    if not is_models_exist:
-        download_cached_file(interrogate.blip_model_url)
+    # check if the BLIP model exists if not download it
+    if args.blip:
+        if not args.use_torch_cache:
+            is_blip_models_exist = os.path.exists(interrogate.blip_models_path)
+            print("loading BLIP model from {}".format(interrogate.blip_models_path))
+            if not is_blip_models_exist:
+                download_cached_file(interrogate.blip_model_url)
+        else:
+            print("Using torch cache")
+
+    # check if the deepbooru model exists if not download it
+    global model
+    global tags
+    model = None
+    tags = None
+    if args.deepbooru:
+        print("loading deepbooru model from {}".format(deepbooru.default_deepbooru_model_path))
+        model, tags = deepbooru.get_deepbooru_tags_model(deepbooru.default_deepbooru_model_path)
 
     types = ('jpg', 'png', 'jpeg', 'gif', 'webp', 'bmp') # the tuple of file types
     p = args.path
@@ -64,10 +82,24 @@ if __name__ == "__main__":
     interrogator = interrogate.InterrogateModels("interrogate")
     interrogator.load()
     for image_path in tqdm(files_with_ext, desc="Processing"):
+        # this should not happen. check for it anyway
         if os.path.isdir(image_path):
             continue
         image = Image.open(image_path).convert("RGB")
-        prompt = interrogator.generate_caption(image)
+        prompt = ""
+        if args.blip:
+            prompt += interrogator.generate_caption(image)
+        if args.deepbooru:
+            prompt += deepbooru.get_deepbooru_tags_from_model(
+                model,
+                tags,
+                image,
+                args.threshold,
+                alpha_sort=args.alpha_sort,
+                use_spaces=args.use_spaces,
+                use_escape=args.use_escape,
+                include_ranks=args.include_ranks,
+            )
         if (args.post_process):
             prompt = post_process_prompt(prompt, args.append)
         image_name = os.path.splitext(os.path.basename(image_path))[0]
