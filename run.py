@@ -79,7 +79,7 @@ if __name__ == "__main__":
     files_with_ext = [ f for f in files_grabbed if f.endswith(types) ]
     print("found {} files with extensions".format(len(files_with_ext)))
         
-    interrogator = interrogate.InterrogateModels("interrogate")
+    interrogator = interrogate.InterrogateModels(**vars(args))
     interrogator.load()
     for image_path in tqdm(files_with_ext, desc="Processing"):
         # this should not happen. check for it anyway
@@ -87,6 +87,7 @@ if __name__ == "__main__":
             continue
         image = Image.open(image_path).convert("RGB")
         prompt = ""
+        # I choose to use blip first.
         if args.blip:
             prompt += interrogator.generate_caption(image)
         if args.deepbooru:

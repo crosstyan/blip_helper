@@ -15,6 +15,7 @@ def get_parser():
     parser.add_argument("--include_ranks", type=bool, default=False)
     # blip
     parser.add_argument("--blip", type=bool, default=True)
+    parser.add_argument("--running_on_cpu", type=bool, default=True)
     parser.add_argument("--no_half", type=bool, default=False)
     parser.add_argument("--keep_models_in_memory", type=bool, default=False)
     parser.add_argument("--blip_num_beams", type=int, default=1)
