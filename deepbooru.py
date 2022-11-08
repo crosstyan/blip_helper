@@ -4,16 +4,18 @@ import zipfile
 import deepdanbooru as dd
 import tensorflow as tf
 import numpy as np
+
+# hate it
+# TODO: use another downloader
 from basicsr.utils.download_util import load_file_from_url
 
-pwd =  os.path.realpath(__file__)
+pwd = os.path.dirname(os.path.realpath(__file__))
 default_deepbooru_model_path = os.path.abspath(os.path.join(pwd, "pretrained", "deepbooru"))
 
 re_special = re.compile(r"([\\()])")
 
 def get_deepbooru_tags_model(model_path: str):
     # why do you find DeepBooru in the fucking temp by default?
-    # model_path = os.path.abspath(os.path.join(tempfile.gettempdir(), "deepbooru"))
     if not os.path.exists(os.path.join(model_path, "project.json")):
         is_abs = os.path.isabs(model_path)
         if not is_abs:

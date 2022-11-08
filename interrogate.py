@@ -49,7 +49,10 @@ class InterrogateModels:
                  blip_num_beams=1,
                  blip_min_length=24,
                  blip_max_length=48,
-                 blip_image_eval_size=384):
+                 blip_image_eval_size=384,
+                 **kwargs
+                 ):
+        print("running on cpu", running_on_cpu)
         self.running_on_cpu = running_on_cpu
         self.no_half = no_half
         self.keep_models_in_memory = keep_models_in_memory

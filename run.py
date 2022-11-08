@@ -10,12 +10,13 @@ import deepbooru
 import args_parser
 
 # hate it
-# TODO: use the same download util
+# TODO: use another downloader
 from torch.hub import download_url_to_file, urlparse, HASH_REGEX
 
 from PIL import Image
 from tqdm import tqdm
 import interrogate
+
 
 # Do some post processing with generated txt
 # like add artist name
@@ -39,9 +40,11 @@ def download_cached_file(url, check_hash=True, progress=False, output_dir=""):
     return models_file
 
 if __name__ == "__main__":
+    # https://stackoverflow.com/questions/20554074/sklearn-omp-error-15-initializing-libiomp5md-dll-but-found-mk2iomp5md-dll-a
+    # $env:KMP_DUPLICATE_LIB_OK=$true
     parser = args_parser.get_parser()
     args = parser.parse_args()
-    if (not args.deepbooru) and (not args.blip):
+    if (not args.deepdanbooru) and (not args.blip):
         print("Why are you running this script?")
         exit(1)
 
@@ -60,7 +63,7 @@ if __name__ == "__main__":
     global tags
     model = None
     tags = None
-    if args.deepbooru:
+    if args.deepdanbooru:
         print("loading deepbooru model from {}".format(deepbooru.default_deepbooru_model_path))
         model, tags = deepbooru.get_deepbooru_tags_model(deepbooru.default_deepbooru_model_path)
 
@@ -72,7 +75,7 @@ if __name__ == "__main__":
     if not os.path.exists(p):
         print("{} not exists".format(p))
         exit(1)
-    print("abs path is {}".format(p))
+    print("The picture path is {}. I will grab all the picture recursively. ".format(p))
     # copilot did this
     files_grabbed = glob.glob(os.path.join(p, "**"), recursive=True)
     print("found {} files".format(len(files_grabbed)))
@@ -90,7 +93,7 @@ if __name__ == "__main__":
         # I choose to use blip first.
         if args.blip:
             prompt += interrogator.generate_caption(image)
-        if args.deepbooru:
+        if args.deepdanbooru:
             prompt += deepbooru.get_deepbooru_tags_from_model(
                 model,
                 tags,
