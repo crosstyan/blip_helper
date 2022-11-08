@@ -16,9 +16,9 @@ def get_parser():
     # blip
     parser.add_argument("--no_half", type=bool, default=False)
     parser.add_argument("--keep_models_in_memory", type=bool, default=False)
-    parser.add_argument("--clip_num_beams", type=int, default=1)
-    parser.add_argument("--clip_min_length", type=int, default=24)
-    parser.add_argument("--clip_max_length", type=int, default=48)
-    parser.add_argument("--clip_dict_limit", type=int, default=1500)
-    parser.add_argument("--use_torch_cache", type=bool, default=False)
+    parser.add_argument("--blip_num_beams", type=int, default=1)
+    parser.add_argument("--blip_min_length", type=int, default=24)
+    parser.add_argument("--blip_max_length", type=int, default=48)
+    parser.add_argument("--blip_image_eval_size", type=int, default=384)
+    parser.add_argument("--use_torch_cache", type=bool, default=False, help="use torch cache directory to download the model instead of default pretrained/BLIP")
     return parser

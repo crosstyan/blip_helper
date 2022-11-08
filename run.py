@@ -25,7 +25,7 @@ def post_process_prompt(prompt: str, append: str) -> str:
     prompt = prompt + ", " + append
     return prompt
 
-def download_cached_file(url, check_hash=True, progress=False):
+def download_cached_file(url, check_hash=True, progress=False, output_dir=""):
     parts = urlparse(url)
     filename = os.path.basename(parts.path)
     models_file = os.path.join(interrogate.blip_models_folder_path, filename)

@@ -38,22 +38,21 @@ sys.path.insert(0, blip_dir)
 
 is_running_on_cpu = True
 is_no_half = False
-interrogate_keep_models_in_memory = False
-interrogate_clip_dict_limit:int = 0
-interrogate_clip_num_beams:int = 1
-interrogate_clip_min_length:int = 24
-interrogate_clip_max_length:int = 48
-interrogate_clip_dict_limit:int = 1500
+keep_models_in_memory = False
+blip_num_beams:int = 1
+blip_min_length:int = 24
+blip_max_length:int = 48
+blip_image_eval_size = 384
+# interrogate_clip_dict_limit:int = 0
+# interrogate_clip_dict_limit:int = 1500
 use_torch_cache = False
 med_config = os.path.join(blip_dir, "configs", "med_config.json")
 
-
-blip_image_eval_size = 384
 blip_model_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth'
 blip_model_filename = "model_base_caption_capfilt_large.pth"
 
 # the folder containing the models
-blip_models_folder_path = os.path.join(pwd, "pretrained")
+blip_models_folder_path = os.path.join(pwd, "pretrained", "BLIP")
 
 # the path of pth
 blip_models_path = os.path.join(blip_models_folder_path, blip_model_filename)
@@ -115,7 +114,7 @@ class InterrogateModels:
         self.blip_model = self.blip_model.to(deivces_interrogate)
 
     def send_blip_to_ram(self):
-        if not interrogate_keep_models_in_memory:
+        if not keep_models_in_memory:
             if self.blip_model is not None:
                 self.blip_model = self.blip_model.to(cpu)
 
@@ -131,5 +130,5 @@ class InterrogateModels:
         ])(pil_image).unsqueeze(0).to(deivces_interrogate)
 
         with torch.no_grad():
-            caption = self.blip_model.generate(gpu_image, sample=False, num_beams=interrogate_clip_num_beams, min_length=interrogate_clip_min_length, max_length=interrogate_clip_max_length)
+            caption = self.blip_model.generate(gpu_image, sample=False, num_beams=blip_num_beams, min_length=blip_min_length, max_length=blip_max_length)
         return caption[0]
