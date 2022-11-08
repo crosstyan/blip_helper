@@ -93,6 +93,8 @@ if __name__ == "__main__":
         # I choose to use blip first.
         if args.blip:
             prompt += interrogator.generate_caption(image)
+        if args.blip and args.deepdanbooru:
+            prompt += ", "
         if args.deepdanbooru:
             prompt += deepbooru.get_deepbooru_tags_from_model(
                 model,
