@@ -76,7 +76,7 @@ class InterrogateModels:
             self.deivces_interrogate = cpu
         else:
             if torch.cuda.is_available():
-                torch.device('cuda')
+                self.deivces_interrogate = torch.device('cuda')
             else:
                 print("CUDA is not available, using CPU")
                 self.deivces_interrogate = cpu
@@ -100,6 +100,9 @@ class InterrogateModels:
     def load(self):
         if self.blip_model is None:
             self.blip_model = self.load_blip_model()
+            # TODO: make half work
+            # in theory I just have to add a data type just like AUTOMATIC did
+            # RuntimeError: Input type (float) and bias type (struct c10::Half) should be the same
             if not self.no_half and not self.running_on_cpu:
                 self.blip_model = self.blip_model.half()
 
