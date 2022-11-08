@@ -45,6 +45,7 @@ def get_deepbooru_tags_from_model(
     use_spaces=True,
     use_escape=True,
     include_ranks=False,
+    log_results=False,
 ):
     width = model.input_shape[2]
     height = model.input_shape[1]
@@ -96,6 +97,7 @@ def get_deepbooru_tags_from_model(
 
         result_tags_out.append(tag_outformat)
 
-    print("\n".join(sorted(result_tags_print, reverse=True)))
+    if log_results:
+        print("\n".join(sorted(result_tags_print, reverse=True)))
 
     return ", ".join(result_tags_out)

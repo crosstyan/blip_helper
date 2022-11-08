@@ -10,6 +10,7 @@ import torch
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
+
 def torch_gc():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -52,7 +53,6 @@ class InterrogateModels:
                  blip_image_eval_size=384,
                  **kwargs
                  ):
-        print("running on cpu", running_on_cpu)
         self.running_on_cpu = running_on_cpu
         self.no_half = no_half
         self.keep_models_in_memory = keep_models_in_memory
@@ -113,6 +113,7 @@ class InterrogateModels:
             if self.blip_model is not None:
                 self.blip_model = self.blip_model.to(self.cpu)
 
+    # NOTE: is this needed?
     def unload(self):
         self.send_blip_to_ram()
         torch_gc()

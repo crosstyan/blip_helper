@@ -26,7 +26,7 @@ def post_process_prompt(prompt: str, append: str, is_prepend=True) -> str:
     else:
         return prompt + ", " + append
 
-def download_cached_file(url, check_hash=True, progress=False, output_dir=""):
+def download_cached_file(url, check_hash=True, progress=False):
     parts = urlparse(url)
     filename = os.path.basename(parts.path)
     models_file = os.path.join(interrogate.blip_models_folder_path, filename)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     if not os.path.exists(p):
         print("{} not exists".format(p))
         exit(1)
-    print("The picture path is {}. I will grab all the picture recursively. ".format(p))
+    print("The picture path is \"{}\". I will grab all the picture recursively. ".format(p))
     # copilot did this
     files_grabbed = glob.glob(os.path.join(p, "**"), recursive=True)
     print("found {} files".format(len(files_grabbed)))
@@ -105,12 +105,13 @@ if __name__ == "__main__":
                 use_spaces=args.use_spaces,
                 use_escape=args.use_escape,
                 include_ranks=args.include_ranks,
+                log_results=args.log_deepbooru,
             )
         if (args.post_process):
             prompt = post_process_prompt(prompt, args.append)
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         txt_filename = os.path.join(args.path, f"{image_name}.txt")
-        print(f"writing {txt_filename}: {prompt}")
+        print(f"\nwriting {txt_filename}: {prompt}\n")
         # https://stackoverflow.com/questions/4914277/how-to-empty-a-file-using-python
         # overwrite the file default
         with open(txt_filename, 'w') as f:
