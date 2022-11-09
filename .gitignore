@@ -3,3 +3,4 @@ __pycache__
 picture
 pretrained/deepbooru/*
 !pretrained/deepbooru/put_deepbooru_models_here.txt
+.DS_Store
