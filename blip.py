@@ -10,6 +10,9 @@ import torch
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
+# hate it
+# TODO: use another downloader
+from torch.hub import download_url_to_file, urlparse, HASH_REGEX
 
 def torch_gc():
     if torch.cuda.is_available():
@@ -37,6 +40,30 @@ Category = namedtuple("Category", ["name", "topn", "items"])
 
 re_topn = re.compile(r"\.top(\d+)\.")
 
+
+# TODO: refactor this to let user specify the model path
+def download_blip_models(check_hash=True, progress=False):
+    """Download the BLIP models from the URL to a local folder.
+
+    Args:
+        check_hash (bool, optional):  Defaults to True.
+        progress (bool, optional): . Defaults to False.
+
+    Returns:
+        str: The path of the downloaded file.
+    """
+    url = blip_model_url
+    parts = urlparse(url)
+    filename = os.path.basename(parts.path)
+    models_file = os.path.join(blip_models_folder_path, filename)
+    if not os.path.exists(models_file):
+        print('Downloading: "{}" to {}\n'.format(url, models_file))
+        hash_prefix = None
+        if check_hash:
+            r = HASH_REGEX.search(filename)  # r is Optional[Match[str]]
+            hash_prefix = r.group(1) if r else None
+        download_url_to_file(url, models_file, hash_prefix, progress=progress)
+    return models_file
 
 class InterrogateModels:
     blip_model = None

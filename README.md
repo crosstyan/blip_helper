@@ -2,7 +2,8 @@
 
 A script for tagging picture with DeepDanbooru and BLIP
 
-[Get started with tensorflow-metal](https://developer.apple.com/metal/tensorflow-plugin/) for MacOS user
+This script is NOT intended to be publish to [PyPI](https://pypi.org). Clone this repository and run it directly,
+since I can't make sense of the package management of Python. Help wanted! 
 
 ## Usage
 
@@ -20,7 +21,7 @@ python run.py --path /path/to/image
 Using CPU in BLIP part by default, you can change it to GPU by `--blip-try-cuda` option. However Tensorflow that powers DeepDanbooru would choose GPU automatically if it is available. So you might want to use GPU for DeepDanbooru and CPU for BLIP if you don't have enough VRAM.
 
 It's blazingly fast when use DeepDanbooru OR BLIP when using GPU. But it's slow when use both of them. 
-I guess these's a bug in DeepDanbooru since it eats up all my VRAM. I'll try to fix it. (Maybe it's a feature) (Maybe I could load it to memory to let it eats up less VRAM?) Needs more investigation.
+I guess these's a bug in DeepDanbooru since it eats up all my VRAM. I'll try to fix it. (Maybe it's a feature) Needs more investigation.
 
 
 See [`args_parser.py`](args_parser.py) for more options.
@@ -31,3 +32,7 @@ See [`args_parser.py`](args_parser.py) for more options.
 - [ ] Add support for choosing GPU for BLIP (trivial but why?)
 - [ ] A workflow for tagging
 - [ ] filter out unwanted tags like orginal anime character
+
+## Misc
+
+- [Get started with tensorflow-metal](https://developer.apple.com/metal/tensorflow-plugin/) for MacOS user

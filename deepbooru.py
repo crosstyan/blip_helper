@@ -14,6 +14,15 @@ default_deepbooru_model_path = os.path.abspath(os.path.join(pwd, "pretrained", "
 
 re_special = re.compile(r"([\\()])")
 
+def init_deepbooru():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        # prevent tensorflow from using all the VRAM
+        tf.config.experimental.set_memory_growth(gpu, True)
+    model, tags = get_deepbooru_tags_model(default_deepbooru_model_path)
+    return model, tags
+
+# TODO: refactor this to let user specify the model path
 def get_deepbooru_tags_model(model_path: str):
     # why do you find DeepBooru in the fucking temp by default?
     if not os.path.exists(os.path.join(model_path, "project.json")):
