@@ -92,7 +92,7 @@ if __name__ == "__main__":
                 include_ranks=args.include_ranks,
                 log_results=args.log_deepbooru,
             )
-        if (args.post_process):
+        if (args.append != ""):
             prompt = post_process_prompt(prompt, args.append)
         image_name = os.path.splitext(os.path.basename(image_path))[0]
         txt_filename = os.path.join(args.path, f"{image_name}.txt")

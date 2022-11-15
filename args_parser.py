@@ -7,8 +7,7 @@ def get_parser():
     parser = argparse.ArgumentParser()
     # general
     parser.add_argument("--path", type=str, default=".")
-    parser.add_argument("--post_process", type=bool, default=True)
-    parser.add_argument("--append", type=str, default="sks",
+    parser.add_argument("--append", type=str, default="",
                         help="append a string to the end of the prompt. only effective when post_process is True")
     # deepdanbooru
     parser.add_argument("--no_deepdanbooru",
@@ -24,10 +23,10 @@ def get_parser():
     parser.add_argument("--log_deepbooru", dest="log_deepbooru", action="store_true", help="show the possibility of each tag")
     # blip
     parser.add_argument("--no_blip", dest="blip", action="store_false")
-    parser.add_argument("--blip_try_cuda", dest="running_on_cpu",
-                        action="store_false")
-    parser.add_argument("--blip_use_half", dest="no_half",
-                        action="store_false")
+    parser.add_argument("--blip_no_try_cuda", dest="running_on_cpu",
+                        action="store_true")
+    # parser.add_argument("--blip_use_half", dest="no_half",
+    #                     action="store_false")
     # not sure if this argument is necessary
     parser.add_argument("--blip_keep_models_in_memory",
                         dest="keep_models_in_memory", action="store_true")
@@ -43,7 +42,7 @@ def get_parser():
         use_spaces=True,
         use_escape=True,
         include_ranks=False,
-        running_on_cpu=True,
+        running_on_cpu=False,
         no_half=True,
         keep_models_in_memory=False,
         use_torch_cache=False,
