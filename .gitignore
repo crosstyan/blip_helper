@@ -4,3 +4,5 @@ picture
 pretrained/deepbooru/*
 !pretrained/deepbooru/put_deepbooru_models_here.txt
 .DS_Store
+pretrained/WDTagger/*
+!pretrained/WDTagger/put_WDTagger_models_here.txt

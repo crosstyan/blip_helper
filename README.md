@@ -8,10 +8,10 @@ since I can't make sense of the package management of Python. Help wanted!
 ## Usage
 
 ```bash
+git clone https://github.com/crosstyan/blip_helper
+cd blip_helper
 git submodule update --init --recursive
 pip install -r requirements.txt
-pip install -r repo/BLIP/requirements.txt
-pip install -r repo/DeepDanbooru/requirements.txt
 pip install repo/DeepDanbooru
 # using conda is recommended
 # You would need pycocotoools
@@ -32,6 +32,38 @@ See [`args_parser.py`](args_parser.py) for more options.
 ## Misc
 
 - [Get started with tensorflow-metal](https://developer.apple.com/metal/tensorflow-plugin/) for MacOS user
+
+### Choose Catagories
+
+check `repo/DeepDanbooru/deepdanbooru/commands/download_tags.py`
+
+```python
+category_definitions = [
+    {
+        "category_name": "General",
+        "category": "general",
+        "path": os.path.join(project_path, "tags-general.txt"),
+    },
+    {
+       'category_name': 'Artist',
+       'category': 'artist',
+       'path': os.path.join(path, 'tags-artist.txt'),
+    },
+    {
+       'category_name': 'Copyright',
+       'category': 'copyright',
+       'path': os.path.join(path, 'tags-copyright.txt'),
+    },
+    {
+        "category_name": "Character",
+        "category": "character",
+        "path": os.path.join(project_path, "tags-character.txt"),
+    },
+]
+```
+
+Comment out the ones you don't want to apply.
+Usually I just leave `general` on.
 
 ### MacOS 
 

@@ -5,9 +5,8 @@ import deepdanbooru as dd
 import tensorflow as tf
 import numpy as np
 
-# hate it
-# TODO: use another downloader
-from basicsr.utils.download_util import load_file_from_url
+# TODO: let BLIP use the same DownloadFile function
+from download_util import load_file_from_url
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 default_deepbooru_model_path = os.path.abspath(os.path.join(pwd, "pretrained", "deepbooru"))

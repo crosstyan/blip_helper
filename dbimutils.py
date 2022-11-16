@@ -3,6 +3,27 @@
 import cv2
 import numpy as np
 from PIL import Image
+import os
+import pandas as pd
+import tensorflow as tf
+
+
+# https://www.tensorflow.org/api_docs/python/tf/keras/models/save_model
+def load_wdt_model():
+    from tensorflow.keras.models import load_model
+    wdt_base_path = os.path.join(os.path.dirname(__file__), "pretrained", "WDTagger")
+    wdt_model_path = os.path.join(wdt_base_path, "networks", "ViTB16_11_03_2022_07h05m53s")
+    wdt_model = load_model(wdt_model_path)
+    label_names = pd.read_csv(os.path.join(wdt_base_path, "selected_tags.csv"))
+    return wdt_model, label_names
+
+def init_wdt():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        # prevent tensorflow from using all the VRAM
+        tf.config.experimental.set_memory_growth(gpu, True)
+    model, tags = load_wdt_model()
+    return model, tags
 
 
 def smart_imread(img, flag=cv2.IMREAD_UNCHANGED):
