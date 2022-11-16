@@ -73,3 +73,4 @@ def smart_resize(img, size):
     elif img.shape[0] < size:
         img = cv2.resize(img, (size, size), interpolation=cv2.INTER_CUBIC)
     return img
+
