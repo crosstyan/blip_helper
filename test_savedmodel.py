@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tabulate import tabulate
 
-from Utils import dbimutils
+import dbimutils
 
 pd.set_option("display.max_rows", 1000)
 
