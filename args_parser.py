@@ -12,7 +12,7 @@ def get_parser():
     # deepdanbooru
     parser.add_argument("--no_deepdanbooru",
                         dest="deepdanbooru", action="store_false")
-    parser.add_argument("--threshold", type=int, default=0.75)
+    parser.add_argument("--threshold", type=float, default=0.75)
     parser.add_argument("--alpha_sort", dest="alpha_sort", action="store_true")
     parser.add_argument("--no-use_spaces",
                         dest="use_spaces", action="store_false")
