@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument("--log-deepbooru", dest="log_deepbooru", action="store_true", help="show the possibility of each tag")
     # blip
     parser.add_argument("--no_blip", dest="blip", action="store_false")
-    parser.add_argument("--blip-no-try_cuda", dest="running_on_cpu",
+    parser.add_argument("--blip-no-try-cuda", dest="running_on_cpu",
                         action="store_true")
     # parser.add_argument("--blip_use_half", dest="no_half",
     #                     action="store_false")
@@ -38,7 +38,7 @@ def get_parser():
     parser.add_argument("--blip-min-length", type=int, default=24)
     parser.add_argument("--blip-max-length", type=int, default=48)
     parser.add_argument("--blip-image-eval-size", type=int, default=384)
-    parser.add_argument("--blip-use-torch-cache", dest="no_torch_cache", action="store_true",
+    parser.add_argument("--blip-use-torch-cache-dir", dest="no_torch_cache", action="store_true",
                         help="use torch cache directory to download the model instead of default pretrained/BLIP")
     parser.set_defaults(
         log_deepdanbooru=False,
