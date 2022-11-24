@@ -29,22 +29,13 @@ class ImageAnnotation:
         val = val.strip(", ")
         return val
 
-    def txt_post_processing(self, append: str = ""):
-        val = append + ", " + str(self)
+    def txt_post_processing(self, text: str = "", is_prepend: bool = False):
+        if is_prepend:
+            val = text + ", " + str(self)
+        else:
+            val = str(self) + ", " + text
         val = val.strip(", ")
         return val
-
-
-# Do some post processing with generated txt
-# like add artist name
-
-
-def post_process_prompt(prompt: str, append: str, is_prepend=True) -> str:
-    if is_prepend:
-        return append + ", " + prompt
-    else:
-        return prompt + ", " + append
-
 
 if __name__ == "__main__":
     # https://stackoverflow.com/questions/20554074/sklearn-omp-error-15-initializing-libiomp5md-dll-but-found-mk2iomp5md-dll-a
