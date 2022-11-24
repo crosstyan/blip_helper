@@ -10,31 +10,31 @@ def get_parser():
     parser.add_argument("--append", type=str, default="",
                         help="append a string to the end of the prompt. only effective when post_process is True")
     # deepdanbooru
-    parser.add_argument("--no_deepdanbooru",
+    parser.add_argument("--no-deepdanbooru",
                         dest="deepdanbooru", action="store_false")
     parser.add_argument("--threshold", type=float, default=0.75)
-    parser.add_argument("--alpha_sort", dest="alpha_sort", action="store_true")
-    parser.add_argument("--no-use_spaces",
+    parser.add_argument("--alpha-sort", dest="alpha_sort", action="store_true")
+    parser.add_argument("--no-use-spaces",
                         dest="use_spaces", action="store_false")
-    parser.add_argument("--no-use_escape",
+    parser.add_argument("--no-use-escape",
                         dest="use_escape", action="store_false")
-    parser.add_argument("--include_ranks",
-                        dest="include_ranks", action="store_true")
-    parser.add_argument("--log_deepbooru", dest="log_deepbooru", action="store_true", help="show the possibility of each tag")
+    parser.add_argument("--include-ranks",
+                        dest="include-ranks", action="store_true")
+    parser.add_argument("--log-deepbooru", dest="log_deepbooru", action="store_true", help="show the possibility of each tag")
     # blip
     parser.add_argument("--no_blip", dest="blip", action="store_false")
-    parser.add_argument("--blip_no_try_cuda", dest="running_on_cpu",
+    parser.add_argument("--blip-no-try_cuda", dest="running_on_cpu",
                         action="store_true")
     # parser.add_argument("--blip_use_half", dest="no_half",
     #                     action="store_false")
     # not sure if this argument is necessary
-    parser.add_argument("--blip_keep_models_in_memory",
+    parser.add_argument("--blip-keep_models-in_memory",
                         dest="keep_models_in_memory", action="store_true")
-    parser.add_argument("--blip_num_beams", type=int, default=1)
-    parser.add_argument("--blip_min_length", type=int, default=24)
-    parser.add_argument("--blip_max_length", type=int, default=48)
-    parser.add_argument("--blip_image_eval_size", type=int, default=384)
-    parser.add_argument("--blip-use_torch_cache", dest="no_torch_cache", action="store_true",
+    parser.add_argument("--blip-num-beams", type=int, default=1)
+    parser.add_argument("--blip-min-length", type=int, default=24)
+    parser.add_argument("--blip-max-length", type=int, default=48)
+    parser.add_argument("--blip-image-eval-size", type=int, default=384)
+    parser.add_argument("--blip-use-torch-cache", dest="no_torch_cache", action="store_true",
                         help="use torch cache directory to download the model instead of default pretrained/BLIP")
     parser.set_defaults(
         log_deepdanbooru=False,

@@ -88,14 +88,14 @@ if __name__ == "__main__":
     # Maximum number of images to preload
     maximum_look_ahead = 128
     batch_size = 4
+    thres = 0.8
+    max_number_tags = 10
     img_gen = fast_deepdanbooru.dd_mt_gen(files_with_ext, nproc=nproc, maximum_look_ahead=maximum_look_ahead)
     index, scores = fast_deepdanbooru.run_dd_keras_prediction(img_gen, model, batch_size=batch_size)
     # scores is list of possible possibilities and follow the order of files_grabbed
     # should be zipped together with image
     scores = fast_deepdanbooru.fix_order(scores, index)
-    thres = 0.8
-    max_number_tags = 10
-    # purger = fast_deepdanbooru.purger_gen(tags, [], [])
+    # TODO: impl purger later
     tag_mask = fast_deepdanbooru.get_tag_mask(deepbooru_utils.default_deepbooru_model_path, [])
     tags = np.array([tag.strip() for tag in tags])
     # here's the thing. The text is just the text.
@@ -116,46 +116,36 @@ if __name__ == "__main__":
         # this should not happen but I'm doing it
         img.tags = list(filter(lambda x: x != "", img.tags))
         pprint(img.scores)
-        with open(img.image_path.with_suffix(".txt"), "w") as f:
-            f.write(" ".join(tags_text))
-    # for idx, score in enumerate(scores):
-    #     # mask = tag_mask & (scores[i] > args.threshold)
-    #     tag_name = tags[tag_idx]
-    #     tag_idx = np.argsort(scores[idx])[-args.max_number_tags:]
-    #     imgs[idx].append(tag_name)
-    #     # score = scores[idx][tag_idx]
-    #     # imgs[idx].scores[tags[tag_idx]] = scores[idx][tag_idx]
-    #     imgs[idx].scores[tag_name]
         
-    # for image_path in tqdm(imgs, desc="Processing"):
-    #     # this should not happen. check for it anyway
-    #     if os.path.isdir(image_path):
-    #         continue
-    #     # image = Image.open(image_path).convert("RGB")
-    #     # prompt = ""
-    #     # # I choose to use blip first.
-    #     # if args.blip:
-    #     #     prompt += interrogator.generate_caption(image)
-    #     # if args.blip and args.deepdanbooru:
-    #     #     prompt += ", "
-    #     # if args.deepdanbooru:
-    #     #     prompt += deepbooru.get_deepbooru_tags_from_model(
-    #     #         model,
-    #     #         tags,
-    #     #         image,
-    #     #         args.threshold,
-    #     #         alpha_sort=args.alpha_sort,
-    #     #         use_spaces=args.use_spaces,
-    #     #         use_escape=args.use_escape,
-    #     #         include_ranks=args.include_ranks,
-    #     #         log_results=args.log_deepbooru,
-    #     #     )
-    #     if (args.append != ""):
-    #         prompt = post_process_prompt(prompt, args.append)
-    #     image_name = os.path.splitext(os.path.basename(image_path))[0]
-    #     txt_filename = os.path.join(args.path, f"{image_name}.txt")
-    #     print(f"\nwriting {txt_filename}: {prompt}\n")
-    #     # https://stackoverflow.com/questions/4914277/how-to-empty-a-file-using-python
-    #     # overwrite the file default
-    #     with open(txt_filename, 'w') as f:
-    #         f.write(prompt)
+    for image_path in tqdm(imgs, desc="Processing"):
+        # this should not happen. check for it anyway
+        if os.path.isdir(image_path):
+            continue
+        # image = Image.open(image_path).convert("RGB")
+        # prompt = ""
+        # # I choose to use blip first.
+        # if args.blip:
+        #     prompt += interrogator.generate_caption(image)
+        # if args.blip and args.deepdanbooru:
+        #     prompt += ", "
+        # if args.deepdanbooru:
+        #     prompt += deepbooru.get_deepbooru_tags_from_model(
+        #         model,
+        #         tags,
+        #         image,
+        #         args.threshold,
+        #         alpha_sort=args.alpha_sort,
+        #         use_spaces=args.use_spaces,
+        #         use_escape=args.use_escape,
+        #         include_ranks=args.include_ranks,
+        #         log_results=args.log_deepbooru,
+        #     )
+        if (args.append != ""):
+            prompt = post_process_prompt(prompt, args.append)
+        image_name = os.path.splitext(os.path.basename(image_path))[0]
+        txt_filename = os.path.join(args.path, f"{image_name}.txt")
+        print(f"\nwriting {txt_filename}: {prompt}\n")
+        # https://stackoverflow.com/questions/4914277/how-to-empty-a-file-using-python
+        # overwrite the file default
+        with open(txt_filename, 'w') as f:
+            f.write(prompt)
