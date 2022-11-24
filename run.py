@@ -1,16 +1,13 @@
 import os.path
 from psutil import cpu_count
 from pathlib import Path
-import re
-import tempfile
-import argparse
 import glob
-import zipfile
 import numpy as np
 import blip
 import deepbooru_utils
 import fast_deepdanbooru
 import args_parser
+from pprint import pprint
 
 from PIL import Image
 from tqdm import tqdm
@@ -21,6 +18,7 @@ class ImageAnnotation:
         self.image_path:Path = Path(image_path)
         # will be filled by DeepDanbooru
         self.tags:list[str] = []
+        self.scores:dict[str, float] = {}
         # will be filled by BLIP
         self.prompt = ""
 
@@ -65,10 +63,10 @@ if __name__ == "__main__":
     tags = None
     if args.deepdanbooru:
         print("loading deepbooru model from {}".format(deepbooru_utils.default_deepbooru_model_path))
-        model, tags = deepbooru_utils.init_deepbooru()
+        model, tags = deepbooru_utils.get_deepbooru_tags_model(deepbooru_utils.default_deepbooru_model_path)
 
     # gif is leave out intentional 
-    types = ['jpg', 'png', 'jpeg', 'webp', 'bmp']
+    types = ['.jpg', '.png', '.jpeg', '.webp', '.bmp']
     p = args.path
     is_abs = os.path.isabs(args.path)
     if not is_abs:
@@ -79,19 +77,55 @@ if __name__ == "__main__":
     print("The picture path is \"{}\". I will grab all the picture recursively. ".format(p))
     # copilot did this
     files_grabbed = glob.glob(os.path.join(p, "**"), recursive=True)
-    files_grabbed = map(Path, files_grabbed)
+    files_grabbed = list(map(Path, files_grabbed))
     print("found {} files".format(len(files_grabbed)))
     files_with_ext = [ f for f in files_grabbed if f.suffix.lower() in types ]
     print("found {} files with extensions".format(len(files_with_ext)))
-    imgs = map(ImageAnnotation, files_with_ext)
+    imgs:list[ImageAnnotation] = list(map(ImageAnnotation, files_with_ext))
+
     # Number of processes in processing module. Defaults to number of CPU cores
     nproc = cpu_count()
     # Maximum number of images to preload
     maximum_look_ahead = 128
     batch_size = 4
-    img_gen = fast_deepdanbooru.dd_mt_gen(files_grabbed, nproc=nproc, maximum_look_ahead=maximum_look_ahead)
+    img_gen = fast_deepdanbooru.dd_mt_gen(files_with_ext, nproc=nproc, maximum_look_ahead=maximum_look_ahead)
     index, scores = fast_deepdanbooru.run_dd_keras_prediction(img_gen, model, batch_size=batch_size)
-    scores = fast_deepdanbooru.fix_order(scores.index)
+    # scores is list of possible possibilities and follow the order of files_grabbed
+    # should be zipped together with image
+    scores = fast_deepdanbooru.fix_order(scores, index)
+    thres = 0.8
+    max_number_tags = 10
+    # purger = fast_deepdanbooru.purger_gen(tags, [], [])
+    tag_mask = fast_deepdanbooru.get_tag_mask(deepbooru_utils.default_deepbooru_model_path, [])
+    tags = np.array([tag.strip() for tag in tags])
+    # here's the thing. The text is just the text.
+    # You can't change the tags directly by changing the txt file
+    # THAT's NOT how the inference works
+    for img, score in zip(imgs, scores):
+        mask = tag_mask & (score > thres)
+        tag_idx = np.argsort(score)[-max_number_tags:]
+        # a list of text
+        tags_text = tags[mask]
+        # a list of possibility
+        tags_score = score[mask]
+        for tag, possibility in zip(tags_text, score[mask]):
+            if tag != "":
+                img.scores[tag] = possibility
+        img.tags += list(tags_text) 
+        # remove all empty string
+        # this should not happen but I'm doing it
+        img.tags = list(filter(lambda x: x != "", img.tags))
+        pprint(img.scores)
+        with open(img.image_path.with_suffix(".txt"), "w") as f:
+            f.write(" ".join(tags_text))
+    # for idx, score in enumerate(scores):
+    #     # mask = tag_mask & (scores[i] > args.threshold)
+    #     tag_name = tags[tag_idx]
+    #     tag_idx = np.argsort(scores[idx])[-args.max_number_tags:]
+    #     imgs[idx].append(tag_name)
+    #     # score = scores[idx][tag_idx]
+    #     # imgs[idx].scores[tags[tag_idx]] = scores[idx][tag_idx]
+    #     imgs[idx].scores[tag_name]
         
     # for image_path in tqdm(imgs, desc="Processing"):
     #     # this should not happen. check for it anyway

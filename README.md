@@ -35,35 +35,15 @@ See [`args_parser.py`](args_parser.py) for more options.
 
 ### Choose Catagories
 
-check `repo/DeepDanbooru/deepdanbooru/commands/download_tags.py`
+`repo/DeepDanbooru/deepdanbooru/commands/download_tags.py`
 
-```python
-category_definitions = [
-    {
-        "category_name": "General",
-        "category": "general",
-        "path": os.path.join(project_path, "tags-general.txt"),
-    },
-    {
-       'category_name': 'Artist',
-       'category': 'artist',
-       'path': os.path.join(path, 'tags-artist.txt'),
-    },
-    {
-       'category_name': 'Copyright',
-       'category': 'copyright',
-       'path': os.path.join(path, 'tags-copyright.txt'),
-    },
-    {
-        "category_name": "Character",
-        "category": "character",
-        "path": os.path.join(project_path, "tags-character.txt"),
-    },
-]
+```py
+# here's the thing. The text is just the text.
+# You can't change the tags directly by changing the txt file
+# THAT's NOT how the inference works
 ```
 
-Comment out the ones you don't want to apply.
-Usually I just leave `general` on.
+I made a mistake here.
 
 ### MacOS 
 

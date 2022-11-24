@@ -1,5 +1,6 @@
 # code from the one and only AO
 import os
+# https://deepreg.readthedocs.io/en/latest/docs/logging.html
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from pathlib import Path
@@ -46,7 +47,9 @@ def _run_dd_keras_prediction(img_gen: Generator[np.ndarray, None, None], send_en
     print("Model loaded. Starting prediction...")
     r = model.predict(ds, batch_size=batch_size)
     print("Prediction done. Results sent")
-    send_end.send((idx_order, r))
+    # send_end.send((idx_order, r))
+    # print(r)
+    return idx_order, r
 
 
 def run_dd_keras_prediction(img_gen: Generator[np.ndarray, None, None], model_path: Path, batch_size: int = 8):
@@ -60,10 +63,11 @@ def run_dd_keras_prediction(img_gen: Generator[np.ndarray, None, None], model_pa
         Tuple[List[int], np.ndarray]: idx_order, predictions
     """
     recv_end, send_end = mp.Pipe(False)
-    p = mp.Process(target=_run_dd_keras_prediction, args=(img_gen, send_end, model_path, batch_size))
-    p.start()
-    r = recv_end.recv()
-    p.join()
+    # p = mp.Process(target=_run_dd_keras_prediction, args=(img_gen, send_end, model_path, batch_size))
+    # p.start()
+    # r = recv_end.recv()
+    # p.join()
+    r = _run_dd_keras_prediction(img_gen, send_end, model_path, batch_size)
     return r
 
 
@@ -143,6 +147,11 @@ def get_tag_mask(DD_path, purges: Tuple[str, ...] = ('System',)):
         DD_path (str): path to folder containing categories.json
         purges: list of category names to purge. All these names should be in cate_names
     """
+    tags = None
+    tags_path = Path(DD_path) / "tags.txt"
+    with open(tags_path, "r") as f:
+        tags = f.read().splitlines()
+    tags = np.array([tag.strip() for tag in tags])
     with open(Path(DD_path) / 'categories.json') as f:
         cate_list = json.load(f)
     cate_list = sorted(cate_list, key=lambda k: k['start_index'])

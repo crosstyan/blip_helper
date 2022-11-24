@@ -1,4 +1,3 @@
-import tensorflow as tf
 import os.path
 import zipfile
 from pathlib import Path
@@ -10,6 +9,7 @@ default_deepbooru_model_path = Path(os.path.abspath(
 
 
 def init_deepbooru():
+    import tensorflow as tf
     gpus = tf.config.experimental.list_physical_devices('GPU')
     for gpu in gpus:
         # prevent tensorflow from using all the VRAM
