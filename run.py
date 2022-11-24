@@ -13,6 +13,10 @@ from PIL import Image
 from tqdm import tqdm
 import blip
 
+# https://stackoverflow.com/questions/52133347/how-can-i-clear-a-model-created-with-keras-and-tensorflowas-backend
+def clear_tf_session():
+    import tensorflow as tf
+    tf.keras.backend.clear_session()
 
 class ImageAnnotation:
     def __init__(self, image_path: str):
@@ -115,6 +119,7 @@ if __name__ == "__main__":
                         img.scores[tag] = possibility
                 pprint(img.scores)
         print("DeepDanbooru finished")
+        clear_tf_session()
 
     # check if the BLIP model exists if not download it and then initialize blip
     global interrogator
