@@ -2,46 +2,15 @@ import os.path
 import re
 import zipfile
 import deepdanbooru as dd
-import tensorflow as tf
 import numpy as np
 
 # TODO: let BLIP use the same DownloadFile function
-from download_util import load_file_from_url
 
 pwd = os.path.dirname(os.path.realpath(__file__))
 default_deepbooru_model_path = os.path.abspath(os.path.join(pwd, "pretrained", "deepbooru"))
 
 re_special = re.compile(r"([\\()])")
 
-def init_deepbooru():
-    gpus = tf.config.experimental.list_physical_devices('GPU')
-    for gpu in gpus:
-        # prevent tensorflow from using all the VRAM
-        tf.config.experimental.set_memory_growth(gpu, True)
-    model, tags = get_deepbooru_tags_model(default_deepbooru_model_path)
-    return model, tags
-
-# TODO: refactor this to let user specify the model path
-def get_deepbooru_tags_model(model_path: str):
-    # why do you find DeepBooru in the fucking temp by default?
-    if not os.path.exists(os.path.join(model_path, "project.json")):
-        is_abs = os.path.isabs(model_path)
-        if not is_abs:
-            model_path = os.path.abspath(model_path)
-        # there is no point importing these every time
-        load_file_from_url(
-            r"https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip",
-            model_path,
-        )
-        with zipfile.ZipFile(
-            os.path.join(model_path, "deepdanbooru-v3-20211112-sgd-e28.zip"), "r"
-        ) as zip_ref:
-            zip_ref.extractall(model_path)
-        os.remove(os.path.join(model_path, "deepdanbooru-v3-20211112-sgd-e28.zip"))
-
-    tags = dd.project.load_tags_from_project(model_path)
-    model = dd.project.load_model_from_project(model_path, compile_model=False)
-    return model, tags
 
 
 def get_deepbooru_tags_from_model(
