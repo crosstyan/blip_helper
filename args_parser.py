@@ -13,13 +13,17 @@ def get_parser():
     parser.add_argument("--no-deepdanbooru",
                         dest="deepdanbooru", action="store_false")
     parser.add_argument("--threshold", type=float, default=0.75)
-    parser.add_argument("--alpha-sort", dest="alpha_sort", action="store_true")
-    parser.add_argument("--no-use-spaces",
-                        dest="use_spaces", action="store_false")
-    parser.add_argument("--no-use-escape",
-                        dest="use_escape", action="store_false")
-    parser.add_argument("--include-ranks",
-                        dest="include-ranks", action="store_true")
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--max-look-ahead", type=int, default=128)
+    parser.add_argument("--max-number-tags", type=int, default=25)
+    # TODO: count token
+    # parser.add_argument("--alpha-sort", dest="alpha_sort", action="store_true")
+    # parser.add_argument("--no-use-spaces",
+    #                     dest="use_spaces", action="store_false")
+    # parser.add_argument("--no-use-escape",
+    #                     dest="use_escape", action="store_false")
+    # parser.add_argument("--include-ranks",
+    #                     dest="include-ranks", action="store_true")
     parser.add_argument("--log-deepbooru", dest="log_deepbooru", action="store_true", help="show the possibility of each tag")
     # blip
     parser.add_argument("--no_blip", dest="blip", action="store_false")
