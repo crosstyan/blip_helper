@@ -84,8 +84,14 @@ def transform_and_pad_image(image, target_width, target_height, order=3, mode="e
         np.ndarray: transformed image    
     """
     if not isinstance(image, Image.Image):
-        image = Image.open(image)
+        try:
+            image = Image.open(image)
+        except:
+            print(f"Failed to open {image}")
+            return
     w, h = image.size
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert("RGBA")
     np_image = np.array(image)
     if np_image.shape[-1] == 4:
         np_image[:, :, :3] = (np_image[:, :, 3:] / 255 * np_image[:, :, :3] + (1 - np_image[:, :, 3:] / 255) * 255).astype(np.uint8)
@@ -110,7 +116,8 @@ def transform_and_pad_image(image, target_width, target_height, order=3, mode="e
 def dd_mt_gen_worker(x):
     """Worker function for dd_mt_gen. This function is called by multiprocessing.Pool.map_async"""
     q, i, img = x
-    q.put((i, transform_and_pad_image(img, 512, 512, order=1, mode="edge")))
+    img = transform_and_pad_image(img, 512, 512, order=1, mode="edge")
+    q.put((i, img))
 
 
 def dd_mt_gen(images, nproc, maximum_look_ahead: int = 128, x: int = 512, y: int = 512):
@@ -147,11 +154,6 @@ def get_tag_mask(DD_path, purges: Tuple[str, ...] = ('System',)):
         DD_path (str): path to folder containing categories.json
         purges: list of category names to purge. All these names should be in cate_names
     """
-    tags = None
-    tags_path = Path(DD_path) / "tags.txt"
-    with open(tags_path, "r") as f:
-        tags = f.read().splitlines()
-    tags = np.array([tag.strip() for tag in tags])
     with open(Path(DD_path) / 'categories.json') as f:
         cate_list = json.load(f)
     cate_list = sorted(cate_list, key=lambda k: k['start_index'])
@@ -224,6 +226,9 @@ def add_args():
 
 def purger_gen(tags, blacklist_tags, thres):
     assert len(thres) == len(blacklist_tags)
+    if not blacklist_tags:
+        return lambda *args: False
+
     tags = list(tags)
     blacklist_index = [tags.index(tag) for tag in blacklist_tags]
     blacklist_index = np.array(blacklist_index)
