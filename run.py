@@ -8,10 +8,14 @@ import numpy as np
 import blip
 import deepbooru
 import args_parser
+from pathlib import Path
 
 from PIL import Image
 from tqdm import tqdm
 import blip
+
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 # Do some post processing with generated txt
@@ -30,6 +34,21 @@ if __name__ == "__main__":
     if (not args.deepdanbooru) and (not args.blip):
         print("Why are you running this script?")
         exit(1)
+
+    types = ['jpg', 'png', 'jpeg', 'gif', 'webp', 'bmp'] # the tuple of file types
+    files_with_ext:list[Path] = []
+    for p in args.path:
+        p = Path(p)
+        if not p.exists():
+            print("{} not exists".format(p))
+            continue
+        print("The picture path is \"{}\". I will grab all the picture recursively. ".format(p))
+        files_grabbed = p.glob('**/*')
+        # suffix is the file extension with the dot
+        _files_with_ext = [ f for f in files_grabbed if f.suffix[1:] in types ]
+        print("found {} files with extensions".format(len(_files_with_ext)))
+        files_with_ext.extend(_files_with_ext)
+    print("Find totally {} files with extensions".format(len(files_with_ext)))
 
     # check if the BLIP model exists if not download it and then initialize blip
     global interrogator
@@ -53,21 +72,6 @@ if __name__ == "__main__":
     if args.deepdanbooru:
         print("loading deepbooru model from {}".format(deepbooru.default_deepbooru_model_path))
         model, tags = deepbooru.init_deepbooru()
-
-    types = ('jpg', 'png', 'jpeg', 'gif', 'webp', 'bmp') # the tuple of file types
-    p = args.path
-    is_abs = os.path.isabs(args.path)
-    if not is_abs:
-        p = os.path.abspath(args.path)
-    if not os.path.exists(p):
-        print("{} not exists".format(p))
-        exit(1)
-    print("The picture path is \"{}\". I will grab all the picture recursively. ".format(p))
-    # copilot did this
-    files_grabbed = glob.glob(os.path.join(p, "**"), recursive=True)
-    print("found {} files".format(len(files_grabbed)))
-    files_with_ext = [ f for f in files_grabbed if f.endswith(types) ]
-    print("found {} files with extensions".format(len(files_with_ext)))
         
     for image_path in tqdm(files_with_ext, desc="Processing"):
         # this should not happen. check for it anyway
@@ -94,8 +98,7 @@ if __name__ == "__main__":
             )
         if (args.append != ""):
             prompt = post_process_prompt(prompt, args.append)
-        image_name = os.path.splitext(os.path.basename(image_path))[0]
-        txt_filename = os.path.join(args.path, f"{image_name}.txt")
+        txt_filename = image_path.with_suffix(".txt")
         print(f"\nwriting {txt_filename}: {prompt}\n")
         # https://stackoverflow.com/questions/4914277/how-to-empty-a-file-using-python
         # overwrite the file default

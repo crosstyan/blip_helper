@@ -6,7 +6,8 @@ import argparse
 def get_parser():
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--path", type=str, default=".")
+    # https://stackoverflow.com/questions/15753701/how-can-i-pass-a-list-as-a-command-line-argument-with-argparse
+    parser.add_argument("-p", "--path", type=str, action="append", required=True, help="Path to the folder containing images. using `-p folder1 -p folder2` will search for images in both folder1 and folder2")
     parser.add_argument("--append", type=str, default="",
                         help="append a string to the end of the prompt. only effective when post_process is True")
     # deepdanbooru
